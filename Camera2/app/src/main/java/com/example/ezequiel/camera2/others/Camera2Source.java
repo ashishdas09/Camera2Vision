@@ -32,16 +32,15 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
-import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresPermission;
-import android.support.v4.content.ContextCompat;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.MotionEvent;
 import android.view.Surface;
-import android.widget.Toast;
 
 import com.example.ezequiel.camera2.utils.Utils;
 import com.google.android.gms.common.images.Size;
@@ -50,8 +49,6 @@ import com.google.android.gms.vision.Frame;
 
 import java.io.IOException;
 import java.lang.Thread.State;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.nio.ByteBuffer;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -180,7 +177,6 @@ public class Camera2Source {
     private Size mVideoSize;
 
     private MediaRecorder mMediaRecorder;
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
     private String videoFile;
     private VideoStartCallback videoStartCallback;
     private VideoStopCallback videoStopCallback;
@@ -714,7 +710,7 @@ public class Camera2Source {
                 this.videoErrorCallback.onVideoError("Camera not ready.");
                 return;
             }
-            videoFile = Environment.getExternalStorageDirectory() + "/" + formatter.format(new Date()) + ".mp4";
+            videoFile = Utils.getNewVideoFilePath();
             mMediaRecorder = new MediaRecorder();
             //mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
             mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);

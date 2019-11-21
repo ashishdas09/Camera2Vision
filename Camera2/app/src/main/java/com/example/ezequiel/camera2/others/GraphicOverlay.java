@@ -9,6 +9,7 @@ import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.View;
 
+import com.example.ezequiel.camera2.helper.FaceDetectionTask;
 import com.google.android.gms.vision.CameraSource;
 
 import java.util.HashSet;
@@ -40,6 +41,8 @@ public class GraphicOverlay extends View {
     private float mHeightScaleFactor = 1.0f;
     private int mFacing = CameraSource.CAMERA_FACING_BACK;
     private Set<Graphic> mGraphics = new HashSet<>();
+
+    private FaceDetectionTask mFaceDetectionTask;
 
     /**
      * Base class for a custom graphics object to be rendered within the graphic overlay.  Subclass
@@ -115,11 +118,22 @@ public class GraphicOverlay extends View {
         super(context, attrs);
     }
 
+    public void setFaceDetectionTask(final FaceDetectionTask faceDetectionTask)
+    {
+        mFaceDetectionTask = faceDetectionTask;
+    }
+
     /**
      * Removes all graphics from the overlay.
      */
     public void clear() {
         synchronized (mLock) {
+
+            if (mFaceDetectionTask != null)
+            {
+                mFaceDetectionTask.restart();
+            }
+
             mGraphics.clear();
         }
         postInvalidate();
@@ -128,8 +142,14 @@ public class GraphicOverlay extends View {
     /**
      * Adds a graphic to the overlay.
      */
-    public void add(Graphic graphic) {
+    public void add(FaceGraphic graphic) {
         synchronized (mLock) {
+
+            if (mFaceDetectionTask != null)
+            {
+                mFaceDetectionTask.start(graphic.getFace());
+            }
+
             mGraphics.add(graphic);
         }
         postInvalidate();
@@ -138,9 +158,14 @@ public class GraphicOverlay extends View {
     /**
      * Removes a graphic from the overlay.
      */
-    public void remove(Graphic graphic) {
+    public void remove(FaceGraphic graphic) {
         synchronized (mLock) {
             mGraphics.remove(graphic);
+
+            if (mFaceDetectionTask != null)
+            {
+                mFaceDetectionTask.restart(graphic.getFace());
+            }
         }
         postInvalidate();
     }

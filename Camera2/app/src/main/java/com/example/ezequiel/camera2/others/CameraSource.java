@@ -28,16 +28,13 @@ import android.hardware.Camera.CameraInfo;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Build;
-import android.os.CountDownTimer;
 import android.os.Environment;
-import android.os.Handler;
-import android.os.Message;
 import android.os.SystemClock;
-import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.RequiresPermission;
-import android.support.annotation.StringDef;
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.annotation.StringDef;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -49,6 +46,7 @@ import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Frame;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.State;
 import java.lang.annotation.Retention;
@@ -154,7 +152,6 @@ public class CameraSource {
     // select close, but not exactly the same values for these.
     private float mRequestedFps = 30.0f;
 
-    private SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault());
     private MediaRecorder mediaRecorder;
     private String videoFile;
     private VideoStartCallback videoStartCallback;
@@ -623,7 +620,7 @@ public class CameraSource {
         mediaRecorder.setVideoSize(profile.videoFrameWidth, profile.videoFrameHeight);
 
         //Step 4. Set output file
-        videoFile = Environment.getExternalStorageDirectory() + "/" + formatter.format(new Date()) + ".mp4";
+        videoFile = Utils.getNewVideoFilePath();
         mediaRecorder.setOutputFile(videoFile);
         //Step 5. Set Duration
         mediaRecorder.setMaxDuration(-1);
