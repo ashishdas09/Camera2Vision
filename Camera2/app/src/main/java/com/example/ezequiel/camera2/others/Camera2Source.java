@@ -28,15 +28,9 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaRecorder;
 import android.os.Build;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.SystemClock;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresPermission;
-import androidx.core.content.ContextCompat;
 import android.util.Log;
 import android.util.SparseIntArray;
 import android.view.MotionEvent;
@@ -50,18 +44,20 @@ import com.google.android.gms.vision.Frame;
 import java.io.IOException;
 import java.lang.Thread.State;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.core.content.ContextCompat;
 
 /**
  * Camera2Source: Created by Ezequiel Adrian Minniti. Buenos Aires.

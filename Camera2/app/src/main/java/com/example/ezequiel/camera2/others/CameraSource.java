@@ -28,13 +28,7 @@ import android.hardware.Camera.CameraInfo;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.os.Build;
-import android.os.Environment;
 import android.os.SystemClock;
-import androidx.annotation.IntDef;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.annotation.RequiresPermission;
-import androidx.annotation.StringDef;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -46,20 +40,22 @@ import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Frame;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.State;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
+
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.annotation.RequiresPermission;
+import androidx.annotation.StringDef;
 
 // Note: This requires Google Play Services 8.1 or higher, due to using indirect byte buffers for
 // storing images.

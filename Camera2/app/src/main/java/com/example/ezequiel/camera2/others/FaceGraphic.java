@@ -37,7 +37,7 @@ public class FaceGraphic extends GraphicOverlay.Graphic
     private Paint mBoxPaint;
 
     private volatile Face mFace;
-    private int mFaceId;
+    private int mFaceId = -1;
 
     public FaceGraphic(GraphicOverlay overlay)
     {

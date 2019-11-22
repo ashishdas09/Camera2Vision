@@ -36,7 +36,7 @@ public abstract class FaceDetectionTask extends CountDownTimerTask
 		super.stopThread();
 	}
 
-	public void restart(Face face)
+	public synchronized void restart(Face face)
 	{
 		if(!inProcess && face != null && mFace != null && face.getId() == mFace.getId())
 		{
@@ -44,7 +44,7 @@ public abstract class FaceDetectionTask extends CountDownTimerTask
 		}
 	}
 
-	public void restart()
+	public synchronized void restart()
 	{
 		if(!inProcess)
 		{
@@ -54,7 +54,7 @@ public abstract class FaceDetectionTask extends CountDownTimerTask
 		}
 	}
 
-	public void start(Face face)
+	public synchronized void start(Face face)
 	{
 		if(face != null && !inProcess)
 		{
@@ -86,7 +86,7 @@ public abstract class FaceDetectionTask extends CountDownTimerTask
 		}
 	}
 
-	private void _cancel()
+	private synchronized void _cancel()
 	{
 		inProcess = false;
 
@@ -99,57 +99,13 @@ public abstract class FaceDetectionTask extends CountDownTimerTask
 	@Override
 	public void onTick(final long millisUntilFinished)
 	{
-		Log.i(TAG, "FaceId: " + (mFace != null ? mFace.getId() : -1) + ", seconds remaining: " + millisUntilFinished / 1000);
+		notifyFaceDetection(mFace, millisUntilFinished);
 	}
 
-	@Override
-	public void onFinish()
+	public abstract void onFaceDetection(Face face, long millisUntilFinished);
+
+	private void notifyFaceDetection(Face face, long millisUntilFinished)
 	{
-		inProcess = true;
-		notifyFaceDetection(mFace);
-		inProcess = false;
-	}
-
-	public abstract void onFaceDetection(Face face);
-
-	private void notifyFaceDetection(Face face)
-	{
-		if (isFace(face))
-		{
-			onFaceDetection(face);
-		}
-	}
-
-	private boolean isFace(Face face)
-	{
-		if (face != null && face.getLandmarks() != null)
-		{
-			int eyeProbability = 0;
-			int mouthProbability = 0;
-			int noseBaseProbability = 0;
-
-			//DO NOT SET TO NULL THE NON EXISTENT LANDMARKS. USE OLDER ONES INSTEAD.
-			for (Landmark landmark : face.getLandmarks())
-			{
-				switch (landmark.getType())
-				{
-					case Landmark.LEFT_EYE:
-					case Landmark.RIGHT_EYE:
-						eyeProbability = eyeProbability + 1;
-						break;
-					case Landmark.LEFT_MOUTH:
-					case Landmark.RIGHT_MOUTH:
-					case Landmark.BOTTOM_MOUTH:
-						mouthProbability = mouthProbability + 1;
-						break;
-					case Landmark.NOSE_BASE:
-						noseBaseProbability = 1;
-						break;
-				}
-			}
-
-			return (eyeProbability + mouthProbability + noseBaseProbability) > 4;
-		}
-		return false;
+		onFaceDetection(face, millisUntilFinished);
 	}
 }

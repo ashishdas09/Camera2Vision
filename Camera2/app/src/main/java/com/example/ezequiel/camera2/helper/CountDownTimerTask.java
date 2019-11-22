@@ -110,7 +110,7 @@ public abstract class CountDownTimerTask implements Runnable
 			mCancelled = false;
 			if (mMillisInFuture <= 0)
 			{
-				onFinish();
+				onTick(mMillisInFuture);
 				return;
 			}
 
@@ -141,7 +141,7 @@ public abstract class CountDownTimerTask implements Runnable
 
 			if (millisLeft <= 0)
 			{
-				onFinish();
+				onTick(millisLeft);
 				return mCountdownInterval;
 			}
 
@@ -185,9 +185,4 @@ public abstract class CountDownTimerTask implements Runnable
 	 * @param millisUntilFinished The amount of time until finished.
 	 */
 	public abstract void onTick(long millisUntilFinished);
-
-	/**
-	 * Callback fired when the time is up.
-	 */
-	public abstract void onFinish();
 }

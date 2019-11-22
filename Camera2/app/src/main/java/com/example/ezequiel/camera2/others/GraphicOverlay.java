@@ -164,7 +164,14 @@ public class GraphicOverlay extends View {
 
             if (mFaceDetectionTask != null)
             {
-                mFaceDetectionTask.restart(graphic.getFace());
+                if (mGraphics.isEmpty())
+                {
+                    mFaceDetectionTask.restart();
+                }
+                else
+                {
+                    mFaceDetectionTask.restart(graphic.getFace());
+                }
             }
         }
         postInvalidate();

@@ -10,7 +10,8 @@ import android.media.Image;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.Environment;
+import android.os.Handler;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,6 +30,7 @@ import com.example.ezequiel.camera2.others.GraphicOverlay;
 import com.example.ezequiel.camera2.utils.Utils;
 import com.google.android.gms.vision.face.Face;
 import com.google.android.gms.vision.face.FaceDetector;
+import com.google.android.gms.vision.face.Landmark;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -46,7 +48,7 @@ import androidx.core.content.ContextCompat;
 public class Test2Activity extends AppCompatActivity
 {
 
-	private static final String TAG = "Ezequiel Adrian Camera";
+	private static final String TAG = "Test2";
 	private Context context;
 	private static final int REQUEST_CAMERA_PERMISSION = 200;
 	private static final int REQUEST_STORAGE_PERMISSION = 201;
@@ -70,7 +72,6 @@ public class Test2Activity extends AppCompatActivity
 	private Button videoButton;
 
 	private CameraHelper mCameraHelper;
-	private RecordingDurationCountDownTimer mRecordingDurationCountDownTimer;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -89,7 +90,6 @@ public class Test2Activity extends AppCompatActivity
 		ivAutoFocus = (ImageView) findViewById(R.id.ivAutoFocus);
 
 		mCameraHelper = new CameraHelper(context, mPreview, mGraphicOverlay, mFaceDetectionTask);
-		mRecordingDurationCountDownTimer = new RecordingDurationCountDownTimer(10000, 1000);
 
 		if (Utils.checkGooglePlayAvailability(this))
 		{
@@ -146,13 +146,68 @@ public class Test2Activity extends AppCompatActivity
 		}
 	}
 
-	private FaceDetectionTask mFaceDetectionTask = new FaceDetectionTask(5000, 1000)
+	private FaceDetectionTask mFaceDetectionTask = new FaceDetectionTask(3000, 1000)
 	{
+		private int mFaceId = -1;
+
 		@Override
-		public void onFaceDetection(final Face face)
+		public void onFaceDetection(final Face face, final long millisUntilFinished)
 		{
-			this.stopThread();
-			mCameraHelper.startRecordingVideo(mVideoRecordingStatusListener);
+			handle(face, millisUntilFinished);
+		}
+
+		private synchronized void handle(final Face face, final long millisUntilFinished)
+		{
+			Log.i("FaceDetectionTask", "millisUntilFinished: " + millisUntilFinished / 1000);
+
+			if (mCameraHelper.isRecordingVideo())
+			{
+				if (mFaceId != face.getId() || (Math.abs((millisUntilFinished / 1000)) >= 10))
+				{
+					mFaceDetectionTask.stopThread();
+
+					shouldDeleteRecordedFile = (mFaceId != face.getId());
+					mCameraHelper.stopRecordingVideo();
+				}
+			}
+			else if (millisUntilFinished <= 0 && isFace(face))
+			{
+				mFaceId = face.getId();
+				mCameraHelper.startRecordingVideo(mVideoRecordingStatusListener);
+			}
+		}
+
+		private boolean isFace(Face face)
+		{
+			if (face != null && face.getLandmarks() != null)
+			{
+				int eyeProbability = 0;
+				int mouthProbability = 0;
+				int noseBaseProbability = 0;
+
+				//DO NOT SET TO NULL THE NON EXISTENT LANDMARKS. USE OLDER ONES INSTEAD.
+				for (Landmark landmark : face.getLandmarks())
+				{
+					switch (landmark.getType())
+					{
+						case Landmark.LEFT_EYE:
+						case Landmark.RIGHT_EYE:
+							eyeProbability = eyeProbability + 1;
+							break;
+						case Landmark.LEFT_MOUTH:
+						case Landmark.RIGHT_MOUTH:
+						case Landmark.BOTTOM_MOUTH:
+							mouthProbability = mouthProbability + 1;
+							break;
+						case Landmark.NOSE_BASE:
+							noseBaseProbability = 1;
+							break;
+					}
+				}
+
+				return (eyeProbability + mouthProbability + noseBaseProbability) > 4;
+			}
+			return false;
 		}
 	};
 
@@ -193,6 +248,8 @@ public class Test2Activity extends AppCompatActivity
 		}
 	};
 
+	private boolean shouldDeleteRecordedFile;
+
 	private final CameraHelper.VideoRecordingStatusListener mVideoRecordingStatusListener = new CameraHelper.VideoRecordingStatusListener()
 	{
 		@Override
@@ -215,12 +272,10 @@ public class Test2Activity extends AppCompatActivity
 							if (status == CameraHelper.VideoRecordingStatus.STARTING)
 							{
 								mCameraHelper.recordVideo();
-								mRecordingDurationCountDownTimer.start();
 							}
 							else
 							{
 								mCameraHelper.stopVideo();
-								mRecordingDurationCountDownTimer.cancel();
 								mFaceDetectionTask.startThread();
 							}
 						}
@@ -229,6 +284,8 @@ public class Test2Activity extends AppCompatActivity
 				break;
 				case RECORDING:
 				{
+					shouldDeleteRecordedFile = false;
+
 					runOnUiThread(new Runnable()
 					{
 						@Override
@@ -243,6 +300,28 @@ public class Test2Activity extends AppCompatActivity
 				break;
 				case STOPPED:
 				{
+					if (!TextUtils.isEmpty(videoFile))
+					{
+						if (shouldDeleteRecordedFile)
+						{
+							try
+							{
+								if (new File(videoFile).delete())
+								{
+									Toast.makeText(context, "Delete the Recorded File", Toast.LENGTH_SHORT).show();
+								}
+							}
+							catch (Exception e)
+							{
+
+							}
+						}
+						else
+						{
+
+						}
+					}
+
 					runOnUiThread(new Runnable()
 					{
 						@Override
@@ -424,30 +503,5 @@ public class Test2Activity extends AppCompatActivity
 	{
 		super.onDestroy();
 		mCameraHelper.onDestroy();
-	}
-
-	private class RecordingDurationCountDownTimer extends CountDownTimer
-	{
-		public RecordingDurationCountDownTimer(final long millisInFuture, final long countDownInterval)
-		{
-			super(millisInFuture, countDownInterval);
-		}
-
-		@Override
-		public void onTick(final long millisUntilFinished)
-		{
-			Log.i(TAG, "RecordingDurationCountDownTimer: Seconds remaining: " + millisUntilFinished / 1000);
-		}
-
-		@Override
-		public void onFinish()
-		{
-			if (mCameraHelper.isRecordingVideo())
-			{
-				mCameraHelper.stopRecordingVideo();
-			}
-
-			mFaceDetectionTask.startThread();
-		}
 	}
 }
